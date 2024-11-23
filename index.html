@@ -1,142 +1,152 @@
-<!DOCTYPE html> 
-<html lang="it"><head>	<meta charset = "UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-	<title>Cifratura Vigenère</title>
-	<style>
-		body {
-			display: flex;
-			justify-content: space-between;
-			align-items: flex-start;
-			height: 100vh; /* Altezza a schermo intero */
-			margin: 0;
-			background-color: #f0f0f0; /* Colore di sfondo chiaro */
-		}
-		.container {
-			margin: 20px;
-			display: flex;
-			flex-direction: column;
-		}
-		#inputText {
-			width: 300px; /* Larghezza della casella di input */
-			height: 200px; /* Altezza della casella di input */
-			padding: 10px;
-			font-size: 16px;
-			background-color: white;
-			border: 1px solid #ccc; /* Bordo grigio chiaro */
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombra leggera */
-			resize: none; /* Disabilita il ridimensionamento */
-		}
-		#outputText {
-			width: 300px; /* Larghezza della casella di output */
-			height: 200px; /* Altezza della casella di output */
-			padding: 10px;
-			font-size: 16px;
-			background-color: white;
-			border: 1px solid #ccc; /* Bordo grigio chiaro */
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombra leggera */
-			resize: none; /* Disabilita il ridimensionamento */
-			pointer-events: none; /* Disabilita l'interazione dell'utente */
-		}
-		#keyContainer {
-			display: flex;
-			align-items: center;
-			margin-top: 10px; /* Distanza dalla casella di input */
-		}
-		#keyInput {
-			width: 100px; /* Larghezza della casella di input */
-			padding: 5px;
-			font-size: 16px;
-			margin-left: 10px; /* Distanza a sinistra dall'etichetta "Key" */
-		}
-		button {
-			padding: 10px 20px;
-			font-size: 16px;
-			margin: 10px; /* Distanza tra i pulsanti */
-			cursor: pointer;
-			background-color: #007bff; /* Colore blu */
-			color: white; /* Colore del testo */
-			border: none; /* Rimuovi il bordo */
-			border-radius: 5px; /* Angoli arrotondati */
-			box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombra bottoni */
-		}
-		button:hover {
-			background-color: #0056b3; /* Colore blu scuro al passaggio del mouse */
-		}
-	</style>
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cifratura Vigenère</title>
+    <style>
+        /* Impostiamo lo sfondo della pagina a nero */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Altezza a schermo intero */
+            margin: 0;
+            background-color: black; /* Colore di sfondo nero */
+            color: white; /* Colore del testo bianco per contrasto */
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column; /* Disporre gli elementi in colonna */
+            align-items: center;
+            gap: 20px; /* Spazio tra gli elementi */
+        }
+        #inputText, #outputText {
+            width: 300px; /* Larghezza delle caselle di input e output */
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc; /* Bordo grigio chiaro */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombra leggera */
+            resize: none; /* Disabilita il ridimensionamento */
+            background-color: white;
+            color: black; /* Colore del testo nelle caselle di input/output */
+        }
+        #outputText {
+            pointer-events: none; /* Disabilita l'interazione dell'utente con il testo di output */
+        }
+        #keyContainer {
+            display: flex;
+            align-items: center;
+            margin-top: 10px; /* Distanza dalla casella di input */
+        }
+        #keyInput {
+            width: 100px; /* Larghezza della casella di input per la chiave */
+            padding: 5px;
+            font-size: 16px;
+            margin-left: 10px; /* Distanza a sinistra dall'etichetta "Key" */
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px; /* Distanza tra i pulsanti */
+            cursor: pointer;
+            background-color: #007bff; /* Colore blu */
+            color: white; /* Colore del testo */
+            border: none; /* Rimuovi il bordo */
+            border-radius: 5px; /* Angoli arrotondati */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Ombra bottoni */
+        }
+        button:hover {
+            background-color: #0056b3; /* Colore blu scuro al passaggio del mouse */
+        }
+    </style>
 </head>
 <body>
 
-	<div class="container">
-		<textarea id="inputText" placeholder="Scrivi qui il testo da cifrare o decifrare..."></textarea>
-		<div id="keyContainer">
-			<label for="keyInput">Key:</label>
-			<input type="text" id="keyInput">
-		</div>
-		<button id="cipherButton">Cifra</button>
-		<button id="decipherButton">Decifra</button>
-		</div>
-	
-	<textarea id="outputText" placeholder="Il risultato apparirà qui..." readonly></textarea>
-	
-	<script>
-		function vigenereCipher(text, key) {
-			let output = '';
-			const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-			const upperText = text.toUpperCase();
-			const upperKey = key.toUpperCase();
-			let keyIndex = 0;
-			
-			for (let i = 0; i < upperText.length; i++) {
-				const char = upperText[i];
-				const keyChar = upperKey[keyIndex % upperKey.length];
-				
-				if (alphabet.includes(char)) {
-					const textIndex = alphabet.indexOf(char);
-					const keyIndexValue = alphabet.indexOf(keyChar);
-					const newIndex = (textIndex + keyIndexValue) % alphabet.length;
-					output += alphabet[newIndex];
-					keyIndex++;
-				} else {
-					output += char; // Mantieni i caratteri non alfabetici come sono
-				}
-			}
-			return output;
-		}
-		function vigenereDecipher(text, key) {
-			let output = '';
-			const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-			const upperText = text.toUpperCase();
-			const upperKey = key.toUpperCase();
-			let keyIndex = 0;
-			
-			for (let i = 0; i < upperText.length; i++) {
-				const char = upperText[i];
-				const keyChar = upperKey[keyIndex % upperKey.length];
-				if (alphabet.includes(char)) {
-					const textIndex = alphabet.indexOf(char);
-					const keyIndexValue = alphabet.indexOf(keyChar);
-					const newIndex = (textIndex - keyIndexValue + alphabet.length) % alphabet.length;
-					output += alphabet[newIndex];
-					keyIndex++;
-				} else {
-					output += char; // Mantieni i caratteri non alfabetici come sono
-				}
-			}
-			return output;
-		}
-		document.getElementById('cipherButton').addEventListener('click', function() {
-			const inputText = document.getElementById('inputText').value;
-			const key = document.getElementById('keyInput').value;
-			const result = vigenereCipher(inputText, key);
-			document.getElementById('outputText').value = result;
-		});
-		document.getElementById('decipherButton').addEventListener('click', function() {
-			const inputText = document.getElementById('inputText').value;
-			const key = document.getElementById('keyInput').value;
-			const result = vigenereDecipher(inputText, key);
-			document.getElementById('outputText').value = result;
-		});
-	</script>
+    <div class="container">
+        <!-- Casella di input per il testo -->
+        <textarea id="inputText" placeholder="Scrivi qui il testo da cifrare o decifrare..."></textarea>
+
+        <!-- Contenitore per la chiave -->
+        <div id="keyContainer">
+            <label for="keyInput">Key:</label>
+            <input type="text" id="keyInput">
+        </div>
+
+        <!-- Casella di output dove apparirà il risultato -->
+        <textarea id="outputText" placeholder="Il risultato apparirà qui..." readonly></textarea>
+
+        <!-- Pulsanti per cifrare e decifrare -->
+        <button id="cipherButton">Cifra</button>
+        <button id="decipherButton">Decifra</button>
+    </div>
+    
+    <script>
+        // Funzione per cifrare con il metodo di Vigenère
+        function vigenereCipher(text, key) {
+            let output = '';
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const upperText = text.toUpperCase();
+            const upperKey = key.toUpperCase();
+            let keyIndex = 0;
+            
+            for (let i = 0; i < upperText.length; i++) {
+                const char = upperText[i];
+                const keyChar = upperKey[keyIndex % upperKey.length];
+                
+                if (alphabet.includes(char)) {
+                    const textIndex = alphabet.indexOf(char);
+                    const keyIndexValue = alphabet.indexOf(keyChar);
+                    const newIndex = (textIndex + keyIndexValue) % alphabet.length;
+                    output += alphabet[newIndex];
+                    keyIndex++;
+                } else {
+                    output += char; // Mantieni i caratteri non alfabetici come sono
+                }
+            }
+            return output;
+        }
+
+        // Funzione per decifrare con il metodo di Vigenère
+        function vigenereDecipher(text, key) {
+            let output = '';
+            const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const upperText = text.toUpperCase();
+            const upperKey = key.toUpperCase();
+            let keyIndex = 0;
+            
+            for (let i = 0; i < upperText.length; i++) {
+                const char = upperText[i];
+                const keyChar = upperKey[keyIndex % upperKey.length];
+                if (alphabet.includes(char)) {
+                    const textIndex = alphabet.indexOf(char);
+                    const keyIndexValue = alphabet.indexOf(keyChar);
+                    const newIndex = (textIndex - keyIndexValue + alphabet.length) % alphabet.length;
+                    output += alphabet[newIndex];
+                    keyIndex++;
+                } else {
+                    output += char; // Mantieni i caratteri non alfabetici come sono
+                }
+            }
+            return output;
+        }
+
+        // Eventi per i pulsanti
+        document.getElementById('cipherButton').addEventListener('click', function() {
+            const inputText = document.getElementById('inputText').value;
+            const key = document.getElementById('keyInput').value;
+            const result = vigenereCipher(inputText, key);
+            document.getElementById('outputText').value = result;
+        });
+
+        document.getElementById('decipherButton').addEventListener('click', function() {
+            const inputText = document.getElementById('inputText').value;
+            const key = document.getElementById('keyInput').value;
+            const result = vigenereDecipher(inputText, key);
+            document.getElementById('outputText').value = result;
+        });
+    </script>
 
 </body>
 </html>
